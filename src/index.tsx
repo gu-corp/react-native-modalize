@@ -125,6 +125,7 @@ const ModalizeBase = (
     HeaderComponent,
     FooterComponent,
     FloatingComponent,
+    FloatingFooterComponent,
 
     // Callbacks
     onOpen,
@@ -161,7 +162,13 @@ const ModalizeBase = (
   const [modalPosition, setModalPosition] = React.useState<TPosition>('initial');
   const [cancelClose, setCancelClose] = React.useState(false);
   const [layouts, setLayouts] = React.useState<Map<string, number>>(new Map());
-
+  const [canDragFloatingFooter, setCanDragFloatingFooter] = React.useState<boolean>(false);
+  const [heightFloatingFooter, setHeightFloatingFooter] = React.useState<number>(0);
+  React.useEffect(() => {
+    if (heightFloatingFooter != 0) {
+      setCanDragFloatingFooter(true);
+    }
+  }, [heightFloatingFooter]);
   const cancelTranslateY = React.useRef(new Animated.Value(1)).current; // 1 by default to have the translateY animation running
   const componentTranslateY = React.useRef(new Animated.Value(0)).current;
   const overlay = React.useRef(new Animated.Value(0)).current;
@@ -194,6 +201,11 @@ const ModalizeBase = (
   );
 
   let willCloseModalize = false;
+  React.useEffect(() => {
+    if (modalPosition !== 'initial') {
+      setCanDragFloatingFooter(false);
+    }
+  }, [modalPosition]);
 
   const handleBackPress = (): boolean => {
     if (alwaysOpen) {
@@ -309,6 +321,11 @@ const ModalizeBase = (
     const { timing, spring } = closeAnimationConfig;
     const lastSnapValue = snapPoint ? snaps[1] : 80;
     const toInitialAlwaysOpen = dest === 'alwaysOpen' && Boolean(alwaysOpen);
+    if (!toInitialAlwaysOpen) {
+      setTimeout(() => {
+        setCanDragFloatingFooter(true);
+      }, 140);
+    }
     const toValue =
       toInitialAlwaysOpen && alwaysOpen ? (modalHeightValue || 0) - alwaysOpen : screenHeight;
 
@@ -527,6 +544,7 @@ const ModalizeBase = (
               if (snap === endHeight) {
                 destSnapPoint = snap;
                 willCloseModalize = true;
+                setCanDragFloatingFooter(true);
                 handleClose();
               }
             } else {
@@ -629,7 +647,22 @@ const ModalizeBase = (
 
   const handleGestureEvent = Animated.event([{ nativeEvent: { translationY: dragY } }], {
     useNativeDriver: USE_NATIVE_DRIVER,
-    listener: ({ nativeEvent: { translationY } }: PanGestureHandlerStateChangeEvent) => {
+    listener: ({
+      nativeEvent: { translationY, y, absoluteY },
+    }: PanGestureHandlerStateChangeEvent) => {
+      if (modalPosition === 'initial') {
+        if (translationY > 0) {
+          setCanDragFloatingFooter(true);
+        } else {
+          setCanDragFloatingFooter(false);
+        }
+      } else {
+        if (snapPoint && absoluteY - y > fullHeight - snapPoint) {
+          setCanDragFloatingFooter(true);
+        } else {
+          setCanDragFloatingFooter(false);
+        }
+      }
       if (panGestureAnimatedValue) {
         const offset = alwaysOpen ?? snapPoint ?? 0;
         const diff = Math.abs(translationY / (endHeight - offset));
@@ -789,6 +822,9 @@ const ModalizeBase = (
         activeOffsetY={ACTIVATED}
         activeOffsetX={ACTIVATED}
         onHandlerStateChange={handleChildren}
+        onEnded={() => {
+          setCanDragFloatingFooter(false);
+        }}
       >
         <Animated.View style={[style, childrenStyle]}>
           <NativeViewGestureHandler
@@ -945,6 +981,21 @@ const ModalizeBase = (
     keyboardAvoidingViewProps.onLayout = handleModalizeContentLayout;
   }
 
+  const setHeightFloat = React.useCallback(
+    (e: LayoutChangeEvent) => {
+      if (
+        e &&
+        e.nativeEvent &&
+        e.nativeEvent.layout &&
+        e.nativeEvent.layout.height &&
+        heightFloatingFooter === 0
+      ) {
+        setHeightFloatingFooter(e.nativeEvent.layout.height);
+      }
+    },
+    [heightFloatingFooter],
+  );
+
   const renderModalize = (
     <View
       style={[s.modalize, rootStyle]}
@@ -963,7 +1014,32 @@ const ModalizeBase = (
               {renderComponent(HeaderComponent, 'header')}
               {renderChildren()}
               {renderComponent(FooterComponent, 'footer')}
+              {canDragFloatingFooter && (
+                <View
+                  style={{
+                    width: '100%',
+                    top: snapPoint ? snapPoint - heightFloatingFooter : 0,
+                    position: 'absolute',
+                    zIndex: 100,
+                  }}
+                >
+                  {FloatingFooterComponent && FloatingFooterComponent()}
+                </View>
+              )}
             </AnimatedKeyboardAvoidingView>
+          )}
+          {!canDragFloatingFooter && (
+            <View
+              onLayout={setHeightFloat}
+              style={{
+                width: '100%',
+                position: 'absolute',
+                bottom: 0,
+                zIndex: 100,
+              }}
+            >
+              {FloatingFooterComponent && FloatingFooterComponent()}
+            </View>
           )}
 
           {withOverlay && renderOverlay()}
