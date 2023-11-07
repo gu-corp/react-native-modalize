@@ -54,6 +54,7 @@ const SCROLL_THRESHOLD = -4;
 const USE_NATIVE_DRIVER = true;
 const ACTIVATED = 20;
 const PAN_DURATION = 150;
+const DEFAULT_PAN_GESTURE_ANIMATED_VALUE = 0;
 
 const ModalizeBase = (
   {
@@ -113,6 +114,7 @@ const ModalizeBase = (
     threshold = 120,
     velocity = 2800,
     panGestureAnimatedValue,
+    defaultPanGestureAnimatedValue = DEFAULT_PAN_GESTURE_ANIMATED_VALUE,
     useNativeDriver = true,
 
     // Elements visibilities
@@ -327,7 +329,7 @@ const ModalizeBase = (
 
       panGestureAnimatedValue
         ? Animated.timing(panGestureAnimatedValue, {
-            toValue: 0,
+            toValue: defaultPanGestureAnimatedValue,
             duration: PAN_DURATION,
             easing: Easing.ease,
             useNativeDriver,
@@ -637,7 +639,7 @@ const ModalizeBase = (
         let value: number;
 
         if (modalPosition === 'initial' && translationY > 0) {
-          value = 0;
+          value = y;
         } else if (modalPosition === 'top' && translationY <= 0) {
           value = 1;
         } else {

@@ -222,9 +222,11 @@ export interface IProps<ListItem = any> {
   velocity?: number | undefined;
 
   /**
-   * Animated.Value of the modal position between 0 and 1.
+   * Animated.Value of the modal position between -1 and 1.
    */
   panGestureAnimatedValue?: Animated.Value;
+
+  defaultPanGestureAnimatedValue?: number;
 
   /**
    * Define if the Animated.Value uses the native thread to execute the animations.
