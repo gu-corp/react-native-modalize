@@ -414,7 +414,7 @@ The highest the number is, the faster the user will need to pan down and make an
 
 ### `panGestureAnimatedValue`
 
-Animated.Value of the modal opening position between 0 and 1.
+Animated.Value of the modal opening position between -1 and 1.
 
 | Type           | Required |
 | -------------- | -------- |
