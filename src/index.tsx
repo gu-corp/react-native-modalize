@@ -163,6 +163,7 @@ const ModalizeBase = (
   const [modalPosition, setModalPosition] = React.useState<TPosition>('initial');
   const [cancelClose, setCancelClose] = React.useState(false);
   const [layouts, setLayouts] = React.useState<Map<string, number>>(new Map());
+  const [destFlag, setDestFlag] = React.useState<TOpen>('default');
 
   const cancelTranslateY = React.useRef(new Animated.Value(1)).current; // 1 by default to have the translateY animation running
   const componentTranslateY = React.useRef(new Animated.Value(0)).current;
@@ -303,6 +304,9 @@ const ModalizeBase = (
 
       if (onPositionChange) {
         onPositionChange(newPosition);
+      }
+      if (destFlag === 'top') {
+        setDestFlag('default');
       }
     });
   };
@@ -596,12 +600,18 @@ const ModalizeBase = (
           setDisableScroll(false);
         }
 
-        if (onPositionChange && modalPosition !== modalPositionValue) {
-          onPositionChange(modalPositionValue);
-        }
-
-        if (modalPosition !== modalPositionValue) {
+        if (destFlag === 'top') {
+          if (onPositionChange) {
+            onPositionChange(modalPositionValue);
+          }
           setModalPosition(modalPositionValue);
+        } else {
+          if (onPositionChange && modalPosition !== modalPositionValue) {
+            onPositionChange(modalPositionValue);
+          }
+          if (modalPosition !== modalPositionValue) {
+            setModalPosition(modalPositionValue);
+          }
         }
       }
     }
@@ -779,7 +789,6 @@ const ModalizeBase = (
   const renderChildren = (): JSX.Element => {
     const style = adjustToContentHeight ? s.content__adjustHeight : s.content__container;
     const minDist = isRNGH2() ? undefined : ACTIVATED;
-
     return (
       <PanGestureHandler
         ref={panGestureChildrenRef}
@@ -846,6 +855,9 @@ const ModalizeBase = (
 
   React.useImperativeHandle(ref, () => ({
     open(dest?: TOpen): void {
+      if (dest === 'top') {
+        setDestFlag('top');
+      }
       if (onOpen) {
         onOpen();
       }
