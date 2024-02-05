@@ -127,6 +127,7 @@ const ModalizeBase = (
     HeaderComponent,
     FooterComponent,
     FloatingComponent,
+    HeaderComponentDrag,
 
     // Callbacks
     onOpen,
@@ -135,6 +136,7 @@ const ModalizeBase = (
     onClosed,
     onBackButtonPress,
     onPositionChange,
+    onPanGestureAnimatedValue,
     onOverlayPress,
     onLayout,
   }: IProps,
@@ -393,7 +395,7 @@ const ModalizeBase = (
   };
 
   const handleBaseLayout = (
-    component: 'content' | 'header' | 'footer' | 'floating',
+    component: 'content' | 'header' | 'footer' | 'floating' | 'headerdrag',
     height: number,
   ): void => {
     setLayouts(new Map(layouts.set(component, height)));
@@ -427,7 +429,7 @@ const ModalizeBase = (
 
   const handleComponentLayout = (
     { nativeEvent }: LayoutChangeEvent,
-    name: 'header' | 'footer' | 'floating',
+    name: 'header' | 'footer' | 'floating' | 'headerdrag',
     absolute: boolean,
   ): void => {
     /**
@@ -655,7 +657,9 @@ const ModalizeBase = (
         } else {
           value = y;
         }
-
+        if (onPanGestureAnimatedValue && modalPosition === 'initial') {
+          onPanGestureAnimatedValue(value, translationY);
+        }
         panGestureAnimatedValue.setValue(value);
       }
     },
@@ -694,7 +698,7 @@ const ModalizeBase = (
 
   const renderComponent = (
     component: React.ReactNode,
-    name: 'header' | 'footer' | 'floating',
+    name: 'header' | 'footer' | 'floating' | 'headerdrag',
   ): JSX.Element | null => {
     if (!component) {
       return null;
@@ -721,6 +725,7 @@ const ModalizeBase = (
         shouldCancelWhenOutside={false}
         onGestureEvent={handleGestureEvent}
         onHandlerStateChange={handleComponent}
+        onEnded={() => onPanGestureAnimatedValue && onPanGestureAnimatedValue(1, 0)}
       >
         <Animated.View
           style={{ zIndex }}
@@ -789,6 +794,16 @@ const ModalizeBase = (
   const renderChildren = (): JSX.Element => {
     const style = adjustToContentHeight ? s.content__adjustHeight : s.content__container;
     const minDist = isRNGH2() ? undefined : ACTIVATED;
+    const tranformStyle = panGestureAnimatedValue && {
+      transform: [
+        {
+          translateY: panGestureAnimatedValue.interpolate({
+            inputRange: [-1, 0, 0.8, 1],
+            outputRange: [0, 0, 56, 0],
+          }),
+        },
+      ],
+    };
     return (
       <PanGestureHandler
         ref={panGestureChildrenRef}
@@ -800,8 +815,9 @@ const ModalizeBase = (
         activeOffsetY={ACTIVATED}
         activeOffsetX={ACTIVATED}
         onHandlerStateChange={handleChildren}
+        onEnded={() => onPanGestureAnimatedValue && onPanGestureAnimatedValue(1, 0)}
       >
-        <Animated.View style={[style, childrenStyle]}>
+        <Animated.View style={[style, childrenStyle, tranformStyle]}>
           <NativeViewGestureHandler
             ref={nativeViewChildrenRef}
             waitFor={tapGestureModalizeRef}
@@ -958,7 +974,6 @@ const ModalizeBase = (
   if (!avoidKeyboardLikeIOS && !adjustToContentHeight) {
     keyboardAvoidingViewProps.onLayout = handleModalizeContentLayout;
   }
-
   const renderModalize = (
     <View
       style={[s.modalize, rootStyle]}
@@ -975,6 +990,7 @@ const ModalizeBase = (
             <AnimatedKeyboardAvoidingView {...keyboardAvoidingViewProps}>
               {renderHandle()}
               {renderComponent(HeaderComponent, 'header')}
+              {renderComponent(HeaderComponentDrag, 'headerdrag')}
               {renderChildren()}
               {renderComponent(FooterComponent, 'footer')}
             </AnimatedKeyboardAvoidingView>

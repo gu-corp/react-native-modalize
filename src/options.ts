@@ -272,6 +272,8 @@ export interface IProps<ListItem = any> {
    */
   FloatingComponent?: React.ReactNode;
 
+  HeaderComponentDrag?: React.ReactNode;
+
   /**
    * Callback function when the `open` method is triggered.
    */
@@ -305,6 +307,8 @@ export interface IProps<ListItem = any> {
    * point (snapPoint or alwaysOpened height).
    */
   onPositionChange?: (position: 'top' | 'initial') => void;
+
+  onPanGestureAnimatedValue?: (value: number, value2: number) => void;
 
   /**
    * Callback used when you press the overlay.
