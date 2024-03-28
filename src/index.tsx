@@ -6,7 +6,6 @@ import * as React from 'react';
 import {
   Animated,
   View,
-  Modal,
   Easing,
   LayoutChangeEvent,
   BackHandler,
@@ -26,6 +25,9 @@ import {
   NativeEventSubscription,
   EmitterSubscription,
 } from 'react-native';
+
+import Modal from 'react-native-modal-no-unmount';
+
 import {
   PanGestureHandler,
   NativeViewGestureHandler,

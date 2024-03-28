@@ -5279,6 +5279,10 @@ react-native-gesture-handler@1.10.3:
     invariant "^2.2.4"
     prop-types "^15.7.2"
 
+"react-native-modal-no-unmount@git+ssh://git@github.com/gu-corp/react-native-modal-no-unmount.git":
+  version "1.0.2"
+  resolved "git+ssh://git@github.com/gu-corp/react-native-modal-no-unmount.git#19eeb6dca9ea8f89ac717732c047a6882c445c46"
+
 react-native@0.66.0:
   version "0.66.0"
   resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.66.0.tgz#99bdd83a9a612a71b94242767989d666d445b007"
