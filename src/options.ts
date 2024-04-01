@@ -258,6 +258,12 @@ export interface IProps<ListItem = any> {
   withOverlay?: boolean;
 
   /**
+   * Define if the modal can be avoided unmounting when closed.
+   * @default false
+   */
+  withNoUnmount?: boolean;
+
+  /**
    * A header component outside of the ScrollView, on top of the modal.
    */
   HeaderComponent?: React.ReactNode;
