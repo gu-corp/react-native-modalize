@@ -119,6 +119,7 @@ const ModalizeBase = (
 
     // Elements visibilities
     withReactModal = false,
+    withNoUnmount = false,
     reactModalProps,
     withHandle = true,
     withOverlay = true,
@@ -165,6 +166,8 @@ const ModalizeBase = (
   const [layouts, setLayouts] = React.useState<Map<string, number>>(new Map());
   const [destFlag, setDestFlag] = React.useState<TOpen>('default');
 
+  // keep component state to avoid unmounting
+  const isNoUnmountViewNeedToShown = React.useRef(false);
   const cancelTranslateY = React.useRef(new Animated.Value(1)).current; // 1 by default to have the translateY animation running
   const componentTranslateY = React.useRef(new Animated.Value(0)).current;
   const overlay = React.useRef(new Animated.Value(0)).current;
@@ -229,7 +232,6 @@ const ModalizeBase = (
     dest: TOpen = 'default',
   ): void => {
     const { timing, spring } = openAnimationConfig;
-
     (backButtonListenerRef as any).current = BackHandler.addEventListener(
       'hardwareBackPress',
       handleBackPress,
@@ -242,9 +244,15 @@ const ModalizeBase = (
     if (dest === 'top') {
       toValue = 0;
     } else if (alwaysOpenValue) {
-      toValue = (modalHeightValue || 0) - alwaysOpenValue;
+      // use adjustValue when withNoUnmount is true. Because at this time modalHeightValue is not set (modalHeightValue is 0)
+      toValue = withNoUnmount
+        ? (adjustValue || 0) - alwaysOpenValue
+        : (modalHeightValue || 0) - alwaysOpenValue;
     } else if (snapPoint) {
-      toValue = (modalHeightValue || 0) - snapPoint;
+      // use adjustValue when withNoUnmount is true. Because at this time modalHeightValue is not set (modalHeightValue is 0)
+      toValue = withNoUnmount
+        ? (adjustValue || 0) - snapPoint
+        : (modalHeightValue || 0) - snapPoint;
     }
 
     if (panGestureAnimatedValue && (alwaysOpenValue || snapPoint)) {
@@ -548,6 +556,7 @@ const ModalizeBase = (
 
           // For alwaysOpen props
           if (distFromSnap < diffPoint && alwaysOpen && beginScrollYValue <= 0) {
+            // TODO: need to check with withNoUnmount prop
             destSnapPoint = (modalHeightValue || 0) - alwaysOpen;
             willCloseModalize = false;
           }
@@ -988,6 +997,37 @@ const ModalizeBase = (
     </View>
   );
 
+  // This is a special case where we don't want to unmount the Modalize and keep it in the tree
+  const renderModalizeNoUnmount = () => {
+    if (!isNoUnmountViewNeedToShown.current) return null;
+
+    return (
+      <View
+        style={[s.modalize, rootStyle, isVisible ? undefined : { height: 0, opacity: 0 }]}
+        pointerEvents={alwaysOpen || !withOverlay ? 'box-none' : 'auto'}
+      >
+        <TapGestureHandler
+          ref={tapGestureModalizeRef}
+          maxDurationMs={tapGestureEnabled ? 100000 : 50}
+          maxDeltaY={lastSnap}
+          enabled={panGestureEnabled}
+        >
+          <View style={s.modalize__wrapper} pointerEvents="box-none">
+            <AnimatedKeyboardAvoidingView {...keyboardAvoidingViewProps}>
+              {renderHandle()}
+              {renderComponent(HeaderComponent, 'header')}
+              {renderChildren()}
+              {renderComponent(FooterComponent, 'footer')}
+            </AnimatedKeyboardAvoidingView>
+            {withOverlay && renderOverlay()}
+          </View>
+        </TapGestureHandler>
+
+        {renderComponent(FloatingComponent, 'floating')}
+      </View>
+    );
+  };
+
   const renderReactModal = (child: JSX.Element): JSX.Element => (
     <Modal
       {...reactModalProps}
@@ -1002,14 +1042,20 @@ const ModalizeBase = (
   );
 
   if (!isVisible) {
-    return null;
+    return withNoUnmount ? renderModalizeNoUnmount() : null;
   }
 
   if (withReactModal) {
     return renderReactModal(renderModalize);
   }
 
-  return renderModalize;
+  if (withNoUnmount) {
+    isNoUnmountViewNeedToShown.current = true;
+    return renderModalizeNoUnmount();
+  } else {
+    isNoUnmountViewNeedToShown.current = false;
+    return renderModalize;
+  }
 };
 
 export type ModalizeProps = IProps;
