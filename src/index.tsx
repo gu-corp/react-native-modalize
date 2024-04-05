@@ -61,6 +61,8 @@ const ModalizeBase = (
     // Refs
     contentRef,
 
+    childScrollOffsetRef,
+
     // Renderers
     children,
     scrollViewProps,
@@ -462,6 +464,9 @@ const ModalizeBase = (
     { nativeEvent }: PanGestureHandlerStateChangeEvent,
     type?: 'component' | 'children',
   ): void => {
+
+    console.log('--->  react-native-modalize -- handleChildren -- nativeEvent= ', nativeEvent);
+    console.log('--->  react-native-modalize -- handleChildren -- childScrollOffsetRef?.current= ', childScrollOffsetRef?.current);
     const { timing } = closeAnimationConfig;
     const { velocityY, translationY } = nativeEvent;
     const negativeReverseScroll =
@@ -651,6 +656,8 @@ const ModalizeBase = (
   const handleGestureEvent = Animated.event([{ nativeEvent: { translationY: dragY } }], {
     useNativeDriver: USE_NATIVE_DRIVER,
     listener: ({ nativeEvent: { translationY } }: PanGestureHandlerStateChangeEvent) => {
+      console.log('--->  react-native-modalize -- handleGestureEvent -- translationY= ', translationY);
+      console.log('--->  react-native-modalize -- handleGestureEvent -- childScrollOffsetRef?.current= ', childScrollOffsetRef?.current);
       if (panGestureAnimatedValue) {
         const offset = alwaysOpen ?? snapPoint ?? 0;
         const diff = Math.abs(translationY / (endHeight - offset));
@@ -795,13 +802,16 @@ const ModalizeBase = (
     );
   };
 
-  const renderChildren = (): JSX.Element => {
+  const renderChildren = (panProps?: {panGestureEnabled: boolean}): JSX.Element => {
     const style = adjustToContentHeight ? s.content__adjustHeight : s.content__container;
     const minDist = isRNGH2() ? undefined : ACTIVATED;
+    console.log('--->  react-native-modalize -- panProps= ', panProps);
+    const customPanGestureEnabled = panProps ? panProps.panGestureEnabled : panGestureEnabled;
+    console.log('--->  react-native-modalize -- customPanGestureEnabled= ', customPanGestureEnabled);
     return (
       <PanGestureHandler
         ref={panGestureChildrenRef}
-        enabled={panGestureEnabled}
+        enabled={customPanGestureEnabled}
         simultaneousHandlers={[nativeViewChildrenRef, tapGestureModalizeRef]}
         shouldCancelWhenOutside={false}
         onGestureEvent={handleGestureEvent}

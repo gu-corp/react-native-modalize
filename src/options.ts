@@ -47,6 +47,8 @@ export interface IProps<ListItem = any> {
    */
   contentRef?: React.RefObject<ScrollView | FlatList<ListItem> | SectionList<ListItem>>;
 
+  childScrollOffsetRef?: React.RefObject<number>;
+
   /**
    * A React node that will define the content of the modal.
    */
