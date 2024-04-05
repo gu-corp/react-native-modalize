@@ -15,7 +15,7 @@ yarn.lock
 .vscode/
 docs/
 examples/
-src/
+# src/
 .eslintrc.js
 .prettierignore
 .watchmanconfig
