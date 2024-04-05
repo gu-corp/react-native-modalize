@@ -258,7 +258,8 @@ export interface IProps<ListItem = any> {
   withOverlay?: boolean;
 
   /**
-   * Define if the modal can be avoided unmounting when closed.
+   * Define if the content modal can be avoided unmounting the component when closed.
+   * Only keep the children or customRenderer component in the render tree.
    * @default false
    */
   withNoUnmount?: boolean;

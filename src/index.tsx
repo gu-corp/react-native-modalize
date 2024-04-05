@@ -997,7 +997,7 @@ const ModalizeBase = (
     </View>
   );
 
-  // This is a special case where we don't want to unmount the Modalize and keep it in the tree
+  // This is a special case where we don't want to unmount the Content view of Modalize and keep it in the tree
   const renderModalizeNoUnmount = () => {
     if (!isNoUnmountViewNeedToShown.current) return null;
 
@@ -1014,16 +1014,16 @@ const ModalizeBase = (
         >
           <View style={s.modalize__wrapper} pointerEvents="box-none">
             <AnimatedKeyboardAvoidingView {...keyboardAvoidingViewProps}>
-              {renderHandle()}
-              {renderComponent(HeaderComponent, 'header')}
+              {isVisible ? renderHandle() : null}
+              {isVisible ? renderComponent(HeaderComponent, 'header') : null}
               {renderChildren()}
-              {renderComponent(FooterComponent, 'footer')}
+              {isVisible ? renderComponent(FooterComponent, 'footer') : null}
             </AnimatedKeyboardAvoidingView>
-            {withOverlay && renderOverlay()}
+            {withOverlay && (isVisible ? renderOverlay() : null)}
           </View>
         </TapGestureHandler>
 
-        {renderComponent(FloatingComponent, 'floating')}
+        {isVisible ? renderComponent(FloatingComponent, 'floating') : null}
       </View>
     );
   };
