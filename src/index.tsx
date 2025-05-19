@@ -807,7 +807,7 @@ const ModalizeBase = (
         onGestureEvent={handleGestureEvent}
         minDist={minDist}
         activeOffsetY={ACTIVATED}
-        activeOffsetX={ACTIVATED}
+        activeOffsetX={[-ACTIVATED, ACTIVATED]}
         onHandlerStateChange={handleChildren}
       >
         <Animated.View style={[style, childrenStyle]}>
