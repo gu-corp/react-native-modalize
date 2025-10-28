@@ -386,7 +386,12 @@ const ModalizeBase = (
     });
   };
 
-  const handleModalizeContentLayout = ({ nativeEvent: { layout } }: LayoutChangeEvent): void => {
+  const handleModalizeContentLayout = ({ nativeEvent }: LayoutChangeEvent): void => {
+    if (!nativeEvent || !nativeEvent.layout) {
+      console.warn('handleModalizeContentLayout: nativeEvent or layout is null');
+      return;
+    }
+    const { layout } = nativeEvent;
     const value = Math.min(
       layout.height + (!adjustToContentHeight || keyboardHeight ? layout.y : 0),
       endHeight -
